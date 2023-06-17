@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
   },
   "exclude": ["node_modules/", "dist/"],
   "include": ["src/**/*.ts", "src/config"]

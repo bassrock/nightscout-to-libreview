@@ -1,5 +1,10 @@
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs'
 import axios from 'axios';
+import tz from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+dayjs.extend(tz);
 
 const getNightscoutToken = function (token) {
   if (token.trim() !== '') {
@@ -125,51 +130,42 @@ export const getNightscoutBolusInsulinEntries = async function (
   const url1 = `${baseUrl}/api/v1/treatments.json?find[created_at][$gte]=${fromDate}&find[created_at][$lte]=${toDate}&find[eventType]=Correction%20Bolus&count=131072${getNightscoutToken(
     token
   )}`;
-  console.log('insulin entries url', url1);
-
-  const response1 = await axios.get(url1, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const data1 = response1.data.map((d) => {
-    return {
-      id: parseInt(`4${dayjs(d['created_at']).format('YYYYMMDDHHmmss')}`),
-      timestamp: d['created_at'],
-      insulin: d.insulin,
-      duration: d.duration,
-    };
-  });
-
   const url2 = `${baseUrl}/api/v1/treatments.json?find[created_at][$gte]=${fromDate}&find[created_at][$lte]=${toDate}&find[eventType]=Meal%20Bolus&count=131072${getNightscoutToken(
     token
   )}`;
-  console.log('insulin entries url', url2);
+  
 
-  const response2 = await axios.get(url2, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const [response1, response2] = await Promise.all([
+      axios.get(url1, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }), 
+    axios.get(url2, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  ]);
 
-  const data2 = response2.data.map((d) => {
-    return {
-      id: parseInt(`4${dayjs(d['created_at']).format('YYYYMMDDHHmmss')}`),
-      timestamp: d['created_at'],
-      insulin: d.insulin,
-      duration: d.duration,
-    };
-  });
+  const responseData = [...response1.data, ...response2.data];
 
-  return [...data1, ...data2].map((e) => {
+  return responseData.map((d) => {
+    if (d.utcOffset !== 0) {
+      throw Error("Not utcOffset 0")
+    }
+
+    let id = parseInt(`4${dayjs(d['created_at']).format('YYYYMMDDHHmmss')}`);
+    let timestamp =  dayjs.tz(d['created_at'], "UTC");
+
     return {
       extendedProperties: {
-        factoryTimestamp: e.timestamp,
+        factoryTimestamp: `${timestamp.format('YYYY-MM-DDTHH:mm:ss.SSS')}Z`,
+ //       action: "deleted"
       },
-      recordNumber: e.id,
-      timestamp: e.timestamp,
-      units: e.insulin,
+      recordNumber: id,
+      timestamp: timestamp.tz("America/Los_Angeles").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      units: d.insulin,
       insulinType: 'RapidActing',
     };
   });
@@ -192,24 +188,24 @@ export const getNightscoutBasalInsulinEntries = async function (
     },
   });
 
-  const data1 = response1.data.map((d) => {
-    return {
-      id: parseInt(`4${dayjs(d['created_at']).format('YYYYMMDDHHmmss')}`),
-      timestamp: d['created_at'],
-      insulin: d.insulin,
-      duration: d.duration,
-    };
-  });
+  return response1.data.map((d) => {
+    if (d.utcOffset !== 0) {
+      throw Error("Not utcOffset 0")
+    }
 
-  return [...data1].map((e) => {
+    let id = parseInt(`4${dayjs(d['created_at']).format('YYYYMMDDHHmmss')}`);
+    let timestamp =  dayjs.tz(d['created_at'], "UTC");
+
     return {
       extendedProperties: {
-        factoryTimestamp: e.timestamp,
+        factoryTimestamp: `${timestamp.format('YYYY-MM-DDTHH:mm:ss.SSS')}Z`,
+ //       action: "deleted"
       },
-      recordNumber: e.id,
-      timestamp: e.timestamp,
-      units: e.insulin,
+      recordNumber: id,
+      timestamp: timestamp.tz("America/Los_Angeles").format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+      units: d.absolute,
       insulinType: 'LongActing',
+      // duration: d.duration,
     };
   });
 };

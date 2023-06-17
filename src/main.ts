@@ -1,14 +1,9 @@
-import * as uuid from 'uuid';
-import * as colors from 'colors';
-import * as prompt from 'prompt';
 import * as fs from 'fs';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 require('dotenv').config({ path: __dirname + '/../config.env' });
 
 import { authLibreView, transferLibreView } from './functions/libre';
 import {
-  getNightscoutFoodEntries,
-  getNightscoutGlucoseEntries,
   getNightscoutBasalInsulinEntries,
   getNightscoutBolusInsulinEntries,
 } from './functions/nightscout';
@@ -30,7 +25,7 @@ fs.writeFileSync(CONFIG_NAME, JSON.stringify(config));
 (async () => {
   const fromDate = dayjs(`2022-01-01`).format('YYYY-MM-DD');
 
-  const toDate = dayjs(`2023-02-26`).format('YYYY-MM-DD');
+  const toDate = dayjs(`2023-06-18`).format('YYYY-MM-DD');
 
   console.log('transfer time span', fromDate, toDate);
 

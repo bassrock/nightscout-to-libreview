@@ -59,7 +59,7 @@ export const authLibreView = async function (
 
   const data = {
     DeviceId: device,
-    GatewayType: 'FSLibreLink.iOS',
+    GatewayType: 'FSLibreLink3.iOS',
     SetDevice: setDevice,
     UserName: username,
     Domain: 'Libreview',
@@ -101,16 +101,15 @@ export const transferLibreView = async function (
   console.log('insulin entries', (insulinEntries || []).length.toString());
 
   //const glucoseSelection = selectData(glucoseEntries);
-
   const data = {
     UserToken: token,
     GatewayType: 'FSLibreLink.iOS',
     DeviceData: {
       header: {
         device: {
-          hardwareDescriptor: 'iPhone14,2',
-          osVersion: '15.4.1',
-          modelName: 'com.abbott.librelink.us',
+          hardwareDescriptor: 'iPhone15,2',
+          osVersion: '16.5',
+          modelName: 'com.abbott.librelink3.us',
           osType: 'iOS',
           uniqueIdentifier: device,
           hardwareName: 'iPhone',
